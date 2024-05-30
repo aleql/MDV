@@ -3,8 +3,6 @@ const arr = [];
 arr.push(vSideEffect);
 import SideEffect from "../charts/dialogs/AnnotationDialogReact";
 arr.push(SideEffect);
-import xx from "./components/ColorChannelDialogReactWrapper";
-arr.push(xx);
 import wc from './components/WordCloudChart'
 arr.push(wc);
 import hfc from './components/HighlightedFeatureChart'

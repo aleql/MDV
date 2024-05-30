@@ -10,6 +10,8 @@ import {csv,tsv,json} from "d3-fetch";
 import AddColumnsFromRowsDialog from "./dialogs/AddColumnsFromRowsDialog.js";
 import ColorChooser from "./dialogs/ColorChooser";
 import GridStackManager, { positionChart } from "./GridstackManager"; //nb, '.ts' unadvised in import paths... should be '.js' but not configured webpack well enough.
+// this is added as a side-effect of import HmrHack elsewhere in the code, then we get the actual class from BaseDialog.experiment
+import FileUploadDialogReact from './dialogs/FileUploadDialogWrapper';
 
 //default charts 
 import "./HistogramChart.js";
@@ -44,7 +46,6 @@ import "./SingleSeriesChart";
 import "./GenomeBrowser";
 import "./DeepToolsHeatMap";
 import connectIPC from "../utilities/InterProcessCommunication";
-import { runInAction } from "mobx";
 import { addChartLink } from "../links/link_utils";
 
 //order of column data in an array buffer
@@ -61,13 +62,13 @@ const column_orders={
 }
 
 const themes={
-    "Dark":{
+    "dark":{
         title_bar_color:"#222",
         main_panel_color:"black",
         text_color:"white",
         background_color:"#333"
     },
-    "Light":{
+    "light":{
         title_bar_color:"white",
         main_panel_color:"#f1f1f1",
         text_color:"black",
@@ -75,16 +76,17 @@ const themes={
 
     }
 }
+
 //https://stackoverflow.com/questions/56393880/how-do-i-detect-dark-mode-using-javascript
 function getPreferredColorScheme() {
     if (window.matchMedia) {
         if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return "Dark";
+            return "dark";
         } else {
-            return "Light";
+            return "light";
         }
     } 
-    return "Light";
+    return "light";
 }
 function listenPreferredColorScheme(callback) {
     if (window.matchMedia) {
@@ -260,6 +262,27 @@ class ChartManager{
 
         },this.rightMenuBar);
         themeButton.style.margin = "3px";
+        if (config.permission === 'edit') {
+            const uploadButton = createMenuIcon("fas fa-upload",{
+                tooltip:{
+                    text:"Add datasource",
+                    position:"bottom-left"
+                },
+                func:(e)=>{
+                    new FileUploadDialogReact().open();
+                }    
+            },this.menuBar);
+            uploadButton.style.margin = "3px";
+        }
+        // createMenuIcon("fas fa-question",{
+        //     tooltip:{
+        //         text:"Help",
+        //         position:"top-right"
+        //     },
+        //     func:()=>{
+        //         //todo
+        //     }
+        // },this.menuBar).style.margin = "3px";
 
         this._setupThemeContextMenu();
       
@@ -545,8 +568,6 @@ class ChartManager{
                 c.chart.themeChanged();
             }
         }
-      
-        
     }
 
 
@@ -610,6 +631,9 @@ class ChartManager{
         }
     }
 
+    /**
+     * Caution: doesn't return a 'DataSource', but a 'DataStore' (which is a property of a 'DataSource')
+     */
     getDataSource(name){
         return this.dsIndex[name].dataStore;
     }
@@ -2101,7 +2125,6 @@ class ChartManager{
     }
 }
 
-
 /**
 * Creates a dialog for the user to choose multiple columns
 * @param {DataStore} dataStore - the dataStore the columns will be chosen from
@@ -2430,7 +2453,7 @@ class AddChartDialog extends BaseDialog{
                     text:c.label,
                     classes:["ciview-title-div"]
                 },parentDiv);
-                // could this logic be shared with SettingsDialog?
+                // could this logic be shared with SettingsDialog? <<
                 if (c.type==="dropdown"){
                     const sel = createEl("select",{
                         styles:{
