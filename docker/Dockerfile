@@ -13,6 +13,9 @@ COPY . .
 # Install npm dependencies
 RUN npm install
 
+# Increase Node.js memory limit for the build process
+ENV NODE_OPTIONS="--max_old_space_size=4096"
+
 # Run the npm build script for Flask and Vite
 RUN npm run build-flask-dockerjs
 
